@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PayAPI — Panel de Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080809;
+  --surface: #111114;
+  --surface2: #18181c;
+  --border: #24242a;
+  --border2: #2e2e36;
+  --green: #00e57a;
+  --green-dim: rgba(0,229,122,0.12);
+  --green-border: rgba(0,229,122,0.25);
+  --red: #ff4d6a;
+  --red-dim: rgba(255,77,106,0.12);
+  --yellow: #ffc744;
+  --yellow-dim: rgba(255,199,68,0.12);
+  --blue: #4d9fff;
+  --blue-dim: rgba(77,159,255,0.12);
+  --text: #e8e6f0;
+  --text2: #8b8999;
+  --text3: #55535f;
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.logo span { color: var(--green); }
+
+.api-key-badge {
+  margin: 1rem 1rem 0;
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+.api-key-badge label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--green);
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.api-key-badge input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  width: 100%;
+}
+
+.nav-section {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1.2rem 1.5rem 0.5rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 0.9rem;
+  color: var(--text2);
+  border-left: 2px solid transparent;
+  margin: 0 0 0.1rem;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { color: var(--green); border-left-color: var(--green); background: var(--green-dim); }
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(8,8,9,0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.btn-green { background: var(--green); color: #000; }
+.btn-green:hover { background: #00c96c; transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-outline:hover { color: var(--text); border-color: #444; }
+.btn-ghost { background: transparent; color: var(--text3); border: none; }
+.btn-ghost:hover { color: var(--text); }
+.btn-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,106,0.2); }
+.btn-red:hover { background: rgba(255,77,106,0.2); }
+.btn-sm { padding: 0.35rem 0.8rem; font-size: 0.78rem; }
+
+.content { padding: 2rem; }
+
+/* SECTIONS */
+.section { display: none; }
+.section.active { display: block; }
+
+/* STATS ROW */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  opacity: 0.06;
+  transform: translate(20px, -20px);
+}
+.stat-card.green::before { background: var(--green); }
+.stat-card.red::before { background: var(--red); }
+.stat-card.yellow::before { background: var(--yellow); }
+
+.stat-label { font-size: 0.78rem; color: var(--text2); margin-bottom: 0.5rem; }
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.9rem;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.stat-value.green { color: var(--green); }
+.stat-value.red { color: var(--red); }
+.stat-value.yellow { color: var(--yellow); }
+.stat-sub { font-size: 0.75rem; color: var(--text3); margin-top: 0.4rem; }
+
+/* TABLE */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.table-header {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.table-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.72rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.015); }
+
+.mono { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--text2); }
+
+/* BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-family: 'DM Mono', monospace;
+}
+.badge::before { content: '●'; font-size: 0.5rem; }
+.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+.badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,106,0.2); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(255,199,68,0.2); }
+.badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(77,159,255,0.2); }
+.badge-gray { background: rgba(139,137,153,0.1); color: var(--text2); border: 1px solid var(--border2); }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  width: 480px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-head {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+.modal-close { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.2rem; line-height: 1; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.modal-foot { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.7rem; justify-content: flex-end; }
+
+/* FORM */
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+label { font-size: 0.78rem; color: var(--text2); font-weight: 500; }
+input, select, textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  padding: 0.65rem 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--green); }
+select option { background: var(--surface2); }
+textarea { resize: vertical; min-height: 80px; }
+
+/* ITEMS LIST */
+.items-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 100px 32px;
+  gap: 0.5rem;
+  align-items: center;
+}
+.btn-icon {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none; font-size: 0.9rem;
+  background: var(--red-dim); color: var(--red);
+  transition: background 0.15s;
+}
+.btn-icon:hover { background: rgba(255,77,106,0.25); }
+.btn-add-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px dashed var(--border2);
+  border-radius: 8px;
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.82rem;
+  width: 100%;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.btn-add-item:hover { border-color: var(--green); color: var(--green); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 2rem; right: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 0.9rem 1.3rem;
+  font-size: 0.875rem;
+  display: flex; align-items: center; gap: 0.7rem;
+  z-index: 999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: var(--green-border); }
+.toast.error { border-color: rgba(255,77,106,0.3); }
+.toast-icon { font-size: 1rem; }
+
+/* EMPTY STATE */
+.empty {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text3);
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+.empty-text { font-size: 0.9rem; }
+
+/* LOADING */
+.loading {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+}
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* DETAIL PANEL */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+}
+.detail-item label { font-size: 0.7rem; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 0.2rem; }
+.detail-item span { font-size: 0.875rem; color: var(--text); }
+
+.total-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+.total-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; font-size: 0.875rem; color: var(--text2); }
+.total-row.final { border-top: 1px solid var(--border); margin-top: 0.3rem; padding-top: 0.6rem; font-size: 1rem; color: var(--text); font-weight: 500; }
+.total-row.final span:last-child { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--green); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .stats-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Pay<span>API</span></div>
+  <div class="api-key-badge">
+    <label>API KEY</label>
+    <input type="text" id="apiKeyInput" value="demo_key_123456" placeholder="sk_live_...">
+  </div>
+
+  <div class="nav-section">Panel</div>
+  <div class="nav-item active" onclick="navigate('clientes')">
+    <span class="nav-icon">👤</span> Clientes
+  </div>
+  <div class="nav-item" onclick="navigate('facturas')">
+    <span class="nav-icon">🧾</span> Facturas
+  </div>
+  <div class="nav-item" onclick="navigate('pagos')">
+    <span class="nav-icon">💸</span> Pagos
+  </div>
+
+  <div class="sidebar-footer">
+    v1.0.0 · PayAPI
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">👤 Clientes</div>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn btn-outline btn-sm" onclick="reloadCurrent()">↺ Actualizar</button>
+      <button class="btn btn-green btn-sm" id="btnNew" onclick="openNewModal()">+ Nuevo</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- CLIENTES -->
+    <section class="section active" id="sec-clientes">
+      <div class="stats-row" id="statsClientes" style="display:none">
+        <div class="stat-card green">
+          <div class="stat-label">Total clientes</div>
+          <div class="stat-value green" id="statTotalClientes">—</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Todos los clientes</div>
+        </div>
+        <div id="tablaClientes"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </section>
+
+    <!-- FACTURAS -->
+    <section class="section" id="sec-facturas">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="stat-label">Total facturado</div>
+          <div class="stat-value green" id="statFacturado">—</div>
+          <div class="stat-sub">facturas pagadas</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">Pendiente de cobro</div>
+          <div class="stat-value yellow" id="statPendiente">—</div>
+          <div class="stat-sub">facturas enviadas</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Vencidas</div>
+          <div class="stat-value red" id="statVencidas">—</div>
+          <div class="stat-sub">requieren atención</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Todas las facturas</div>
+          <div style="display:flex;gap:0.5rem;">
+            <select id="filtroEstado" onchange="cargarFacturas()" style="width:auto;padding:0.35rem 0.7rem;font-size:0.8rem;">
+              <option value="">Todos los estados</option>
+              <option value="draft">Borrador</option>
+              <option value="sent">Enviada</option>
+              <option value="paid">Pagada</option>
+              <option value="overdue">Vencida</option>
+              <option value="cancelled">Cancelada</option>
+            </select>
+          </div>
+        </div>
+        <div id="tablaFacturas"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </section>
+
+    <!-- PAGOS -->
+    <section class="section" id="sec-pagos">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="stat-label">Total confirmado</div>
+          <div class="stat-value green" id="statTotalConfirmado">—</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">Pendiente confirmar</div>
+          <div class="stat-value yellow" id="statTotalPendiente">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total pagos</div>
+          <div class="stat-value" id="statNumPagos">—</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Todos los pagos</div>
+        </div>
+        <div id="tablaPagos"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- MODAL NUEVO CLIENTE -->
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Nuevo cliente</div>
+      <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" id="cNombre" placeholder="Empresa S.L.">
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="cEmail" placeholder="contacto@empresa.es">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" id="cTelefono" placeholder="+34 600 000 000">
+        </div>
+        <div class="form-group">
+          <label>NIF / CIF</label>
+          <input type="text" id="cNif" placeholder="B12345678">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Dirección</label>
+        <input type="text" id="cDireccion" placeholder="Calle Mayor 1, Madrid">
+      </div>
+      <div class="form-group">
+        <label>Divisa</label>
+        <select id="cDivisa">
+          <option value="EUR">€ EUR — Euro</option>
+          <option value="USD">$ USD — Dólar</option>
+          <option value="GBP">£ GBP — Libra</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalCliente')">Cancelar</button>
+      <button class="btn btn-green" onclick="crearCliente()">Crear cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVA FACTURA -->
+<div class="modal-overlay" id="modalFactura">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Nueva factura</div>
+      <button class="modal-close" onclick="closeModal('modalFactura')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="fCliente"><option value="">Selecciona un cliente...</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>IVA (%)</label>
+          <input type="number" id="fIva" value="21" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label>Vencimiento (días)</label>
+          <input type="number" id="fVencimiento" value="30" min="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Líneas de factura *</label>
+        <div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 80px 100px 32px;gap:0.5rem;">
+          <span>Descripción</span><span>Cant.</span><span>Precio unit.</span><span></span>
+        </div>
+        <div class="items-list" id="itemsList"></div>
+        <button class="btn-add-item" onclick="addItem()">+ Añadir línea</button>
+      </div>
+      <div class="form-group">
+        <label>Notas internas</label>
+        <textarea id="fNotas" placeholder="Observaciones, condiciones..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalFactura')">Cancelar</button>
+      <button class="btn btn-green" onclick="crearFactura()">Crear factura</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO PAGO -->
+<div class="modal-overlay" id="modalPago">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Registrar pago</div>
+      <button class="modal-close" onclick="closeModal('modalPago')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="pCliente"><option value="">Selecciona un cliente...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Factura asociada (opcional)</label>
+        <select id="pFactura"><option value="">Sin factura asociada</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Importe *</label>
+          <input type="number" id="pImporte" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Divisa</label>
+          <select id="pDivisa">
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Método de pago</label>
+        <select id="pMetodo">
+          <option value="bank_transfer">Transferencia bancaria</option>
+          <option value="card">Tarjeta</option>
+          <option value="cash">Efectivo</option>
+          <option value="crypto">Crypto</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Referencia</label>
+        <input type="text" id="pReferencia" placeholder="Nº transferencia, referencia...">
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea id="pNotas" placeholder="Observaciones..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalPago')">Cancelar</button>
+      <button class="btn btn-green" onclick="crearPago()">Registrar pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER FACTURA -->
+<div class="modal-overlay" id="modalVerFactura">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="verFacturaTitulo">Factura</div>
+      <button class="modal-close" onclick="closeModal('modalVerFactura')">✕</button>
+    </div>
+    <div class="modal-body" id="verFacturaBody"></div>
+    <div class="modal-foot" id="verFacturaFoot"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon">✓</span>
+  <span id="toastMsg">Acción completada</span>
+</div>
+
+<script>
+const API = 'https://api-key-production-e458.up.railway.app';
+let currentSection = 'clientes';
+let clientes = [];
+let facturas = [];
+
+function getKey() {
+  return document.getElementById('apiKeyInput').value.trim();
+}
+
+function headers() {
+  return { 'Content-Type': 'application/json', 'X-API-Key': getKey() };
+}
+
+async function apiFetch(path, options = {}) {
+  const r = await fetch(API + path, { ...options, headers: headers() });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.detail || 'Error ' + r.status);
+  }
+  return r.json();
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function navigate(section) {
+  currentSection = section;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('sec-' + section).classList.add('active');
+  const titles = { clientes: '👤 Clientes', facturas: '🧾 Facturas', pagos: '💸 Pagos' };
+  document.getElementById('pageTitle').textContent = titles[section];
+  reloadCurrent();
+}
+
+function reloadCurrent() {
+  if (currentSection === 'clientes') cargarClientes();
+  if (currentSection === 'facturas') cargarFacturas();
+  if (currentSection === 'pagos') cargarPagos();
+}
+
+function openNewModal() {
+  if (currentSection === 'clientes') { document.getElementById('modalCliente').classList.add('open'); }
+  if (currentSection === 'facturas') { abrirModalFactura(); }
+  if (currentSection === 'pagos') { abrirModalPago(); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+/* ───── CLIENTES ───── */
+async function cargarClientes() {
+  document.getElementById('tablaClientes').innerHTML = '<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  try {
+    clientes = await apiFetch('/v1/customers/');
+    document.getElementById('statTotalClientes').textContent = clientes.length;
+    document.getElementById('statsClientes').style.display = clientes.length ? 'grid' : 'none';
+
+    if (!clientes.length) {
+      document.getElementById('tablaClientes').innerHTML = `<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">No hay clientes aún.<br>Crea el primero con el botón + Nuevo.</div></div>`;
+      return;
+    }
+    document.getElementById('tablaClientes').innerHTML = `
+      <table>
+        <thead><tr><th>Nombre</th><th>Email</th><th>NIF</th><th>Divisa</th><th>Creado</th><th></th></tr></thead>
+        <tbody>${clientes.map(c => `
+          <tr>
+            <td><strong>${c.name}</strong></td>
+            <td class="mono">${c.email}</td>
+            <td class="mono">${c.tax_id || '—'}</td>
+            <td><span class="badge badge-gray">${c.currency}</span></td>
+            <td class="mono">${c.created_at?.slice(0,10) || '—'}</td>
+            <td style="text-align:right">
+              <button class="btn btn-ghost btn-sm" onclick="eliminarCliente('${c.id}','${c.name}')">🗑</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) { document.getElementById('tablaClientes').innerHTML = `<div class="empty"><div class="empty-text">Error: ${e.message}</div></div>`; }
+}
+
+async function crearCliente() {
+  const nombre = document.getElementById('cNombre').value.trim();
+  const email = document.getElementById('cEmail').value.trim();
+  if (!nombre || !email) return showToast('Nombre y email son obligatorios', 'error');
+  try {
+    await apiFetch('/v1/customers/', { method: 'POST', body: JSON.stringify({
+      name: nombre, email,
+      phone: document.getElementById('cTelefono').value || null,
+      tax_id: document.getElementById('cNif').value || null,
+      address: document.getElementById('cDireccion').value || null,
+      currency: document.getElementById('cDivisa').value,
+    })});
+    closeModal('modalCliente');
+    showToast('Cliente creado correctamente ✓');
+    ['cNombre','cEmail','cTelefono','cNif','cDireccion'].forEach(id => document.getElementById(id).value = '');
+    cargarClientes();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function eliminarCliente(id, name) {
+  if (!confirm(`¿Eliminar el cliente "${name}"?`)) return;
+  try {
+    await apiFetch('/v1/customers/' + id, { method: 'DELETE' });
+    showToast('Cliente eliminado');
+    cargarClientes();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+/* ───── FACTURAS ───── */
+async function cargarFacturas() {
+  document.getElementById('tablaFacturas').innerHTML = '<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  const filtro = document.getElementById('filtroEstado').value;
+  try {
+    facturas = await apiFetch('/v1/invoices/' + (filtro ? '?status=' + filtro : ''));
+    // Stats
+    const pagadas = facturas.filter(f => f.status === 'paid').reduce((s,f) => s + f.total, 0);
+    const pendientes = facturas.filter(f => f.status === 'sent').reduce((s,f) => s + f.total, 0);
+    const vencidas = facturas.filter(f => f.status === 'overdue').length;
+    document.getElementById('statFacturado').textContent = '€' + pagadas.toFixed(2);
+    document.getElementById('statPendiente').textContent = '€' + pendientes.toFixed(2);
+    document.getElementById('statVencidas').textContent = vencidas;
+
+    if (!facturas.length) {
+      document.getElementById('tablaFacturas').innerHTML = `<div class="empty"><div class="empty-icon">🧾</div><div class="empty-text">No hay facturas aún.</div></div>`;
+      return;
+    }
+
+    const estadoBadge = { draft: 'badge-gray', sent: 'badge-blue', paid: 'badge-green', overdue: 'badge-red', cancelled: 'badge-gray' };
+    const estadoLabel = { draft: 'Borrador', sent: 'Enviada', paid: 'Pagada', overdue: 'Vencida', cancelled: 'Cancelada' };
+
+    document.getElementById('tablaFacturas').innerHTML = `
+      <table>
+        <thead><tr><th>Número</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Vence</th><th></th></tr></thead>
+        <tbody>${facturas.map(f => {
+          const cliente = clientes.find(c => c.id === f.customer_id);
+          return `<tr>
+            <td class="mono">${f.number}</td>
+            <td>${cliente ? cliente.name : f.customer_id}</td>
+            <td><span class="badge ${estadoBadge[f.status] || 'badge-gray'}">${estadoLabel[f.status] || f.status}</span></td>
+            <td><strong>€${f.total?.toFixed(2)}</strong></td>
+            <td class="mono">${f.due_date || '—'}</td>
+            <td style="text-align:right;display:flex;gap:0.4rem;justify-content:flex-end">
+              <button class="btn btn-outline btn-sm" onclick="verFactura('${f.id}')">Ver</button>
+              ${f.status !== 'paid' && f.status !== 'cancelled' ? `<button class="btn btn-green btn-sm" onclick="marcarPagada('${f.id}')">Marcar pagada</button>` : ''}
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) { document.getElementById('tablaFacturas').innerHTML = `<div class="empty"><div class="empty-text">Error: ${e.message}</div></div>`; }
+}
+
+async function abrirModalFactura() {
+  if (!clientes.length) { try { clientes = await apiFetch('/v1/customers/'); } catch(e) {} }
+  const sel = document.getElementById('fCliente');
+  sel.innerHTML = '<option value="">Selecciona un cliente...</option>' + clientes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('itemsList').innerHTML = '';
+  addItem();
+  document.getElementById('modalFactura').classList.add('open');
+}
+
+function addItem() {
+  const div = document.createElement('div');
+  div.className = 'item-row';
+  div.innerHTML = `
+    <input type="text" placeholder="Descripción del servicio" class="item-desc">
+    <input type="number" value="1" min="1" class="item-qty" style="text-align:center">
+    <input type="number" placeholder="0.00" step="0.01" class="item-price">
+    <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('itemsList').appendChild(div);
+}
+
+async function crearFactura() {
+  const customer_id = document.getElementById('fCliente').value;
+  if (!customer_id) return showToast('Selecciona un cliente', 'error');
+  const rows = document.querySelectorAll('#itemsList .item-row');
+  const items = Array.from(rows).map(r => ({
+    description: r.querySelector('.item-desc').value,
+    quantity: parseFloat(r.querySelector('.item-qty').value) || 1,
+    unit_price: parseFloat(r.querySelector('.item-price').value) || 0,
+  })).filter(i => i.description && i.unit_price > 0);
+  if (!items.length) return showToast('Añade al menos una línea con descripción y precio', 'error');
+  try {
+    await apiFetch('/v1/invoices/', { method: 'POST', body: JSON.stringify({
+      customer_id,
+      tax_rate: parseFloat(document.getElementById('fIva').value) || 0,
+      due_days: parseInt(document.getElementById('fVencimiento').value) || 30,
+      notes: document.getElementById('fNotas').value || null,
+      items,
+    })});
+    closeModal('modalFactura');
+    showToast('Factura creada correctamente ✓');
+    cargarFacturas();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function verFactura(id) {
+  const f = facturas.find(x => x.id === id);
+  if (!f) return;
+  const cliente = clientes.find(c => c.id === f.customer_id);
+  const estadoLabel = { draft: 'Borrador', sent: 'Enviada', paid: 'Pagada', overdue: 'Vencida', cancelled: 'Cancelada' };
+  const estadoBadge = { draft: 'badge-gray', sent: 'badge-blue', paid: 'badge-green', overdue: 'badge-red', cancelled: 'badge-gray' };
+
+  document.getElementById('verFacturaTitulo').innerHTML = `${f.number} <span class="badge ${estadoBadge[f.status]}" style="margin-left:0.5rem">${estadoLabel[f.status]}</span>`;
+
+  document.getElementById('verFacturaBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-item"><label>Cliente</label><span>${cliente?.name || f.customer_id}</span></div>
+      <div class="detail-item"><label>Email</label><span>${cliente?.email || '—'}</span></div>
+      <div class="detail-item"><label>Creada</label><span>${f.created_at?.slice(0,10)}</span></div>
+      <div class="detail-item"><label>Vence</label><span>${f.due_date || '—'}</span></div>
+    </div>
+    <table style="margin-bottom:0.8rem">
+      <thead><tr><th>Descripción</th><th style="text-align:right">Cant.</th><th style="text-align:right">Precio</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>${(f.items||[]).map(i => `<tr>
+        <td>${i.description}</td>
+        <td class="mono" style="text-align:right">${i.quantity}</td>
+        <td class="mono" style="text-align:right">€${i.unit_price?.toFixed(2)}</td>
+        <td class="mono" style="text-align:right">€${i.total?.toFixed(2)}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+    <div class="total-box">
+      <div class="total-row"><span>Subtotal</span><span>€${f.subtotal?.toFixed(2)}</span></div>
+      <div class="total-row"><span>IVA (${f.tax_rate}%)</span><span>€${f.tax_amount?.toFixed(2)}</span></div>
+      <div class="total-row final"><span>TOTAL</span><span>€${f.total?.toFixed(2)}</span></div>
+    </div>`;
+
+  const foot = document.getElementById('verFacturaFoot');
+  foot.innerHTML = '<button class="btn btn-outline" onclick="closeModal(\'modalVerFactura\')">Cerrar</button>';
+  if (f.status !== 'paid' && f.status !== 'cancelled') {
+    foot.innerHTML += `<button class="btn btn-green" onclick="marcarPagada('${f.id}')">Marcar como pagada</button>`;
+  }
+  document.getElementById('modalVerFactura').classList.add('open');
+}
+
+async function marcarPagada(id) {
+  try {
+    await apiFetch('/v1/invoices/' + id + '/status', { method: 'PATCH', body: JSON.stringify({ status: 'paid' }) });
+    showToast('Factura marcada como pagada ✓');
+    closeModal('modalVerFactura');
+    cargarFacturas();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+/* ───── PAGOS ───── */
+async function cargarPagos() {
+  document.getElementById('tablaPagos').innerHTML = '<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  try {
+    const [pagos, stats] = await Promise.all([
+      apiFetch('/v1/payments/'),
+      apiFetch('/v1/payments/summary/stats'),
+    ]);
+    document.getElementById('statTotalConfirmado').textContent = '€' + (stats.total_confirmed || 0).toFixed(2);
+    document.getElementById('statTotalPendiente').textContent = '€' + (stats.total_pending || 0).toFixed(2);
+    document.getElementById('statNumPagos').textContent = stats.total_payments || 0;
+
+    if (!pagos.length) {
+      document.getElementById('tablaPagos').innerHTML = `<div class="empty"><div class="empty-icon">💸</div><div class="empty-text">No hay pagos registrados aún.</div></div>`;
+      return;
+    }
+    const metodoBadge = { bank_transfer: '🏦', card: '💳', cash: '💵', crypto: '₿' };
+    const metodoLabel = { bank_transfer: 'Transferencia', card: 'Tarjeta', cash: 'Efectivo', crypto: 'Crypto' };
+
+    document.getElementById('tablaPagos').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Cliente</th><th>Importe</th><th>Método</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+        <tbody>${pagos.map(p => {
+          const cliente = clientes.find(c => c.id === p.customer_id);
+          return `<tr>
+            <td class="mono">${p.id?.slice(0,14)}...</td>
+            <td>${cliente ? cliente.name : p.customer_id}</td>
+            <td><strong>€${p.amount?.toFixed(2)}</strong></td>
+            <td>${metodoBadge[p.method] || ''} ${metodoLabel[p.method] || p.method}</td>
+            <td><span class="badge ${p.status === 'confirmed' ? 'badge-green' : 'badge-yellow'}">${p.status === 'confirmed' ? 'Confirmado' : 'Pendiente'}</span></td>
+            <td class="mono">${p.created_at?.slice(0,10)}</td>
+            <td>${p.status === 'pending' ? `<button class="btn btn-green btn-sm" onclick="confirmarPago('${p.id}')">Confirmar</button>` : ''}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) { document.getElementById('tablaPagos').innerHTML = `<div class="empty"><div class="empty-text">Error: ${e.message}</div></div>`; }
+}
+
+async function abrirModalPago() {
+  if (!clientes.length) { try { clientes = await apiFetch('/v1/customers/'); } catch(e) {} }
+  const selC = document.getElementById('pCliente');
+  selC.innerHTML = '<option value="">Selecciona un cliente...</option>' + clientes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  selC.onchange = async () => {
+    const id = selC.value;
+    const selF = document.getElementById('pFactura');
+    selF.innerHTML = '<option value="">Sin factura asociada</option>';
+    if (id) {
+      try {
+        const fs = await apiFetch('/v1/invoices/?customer_id=' + id);
+        fs.filter(f => f.status !== 'paid').forEach(f => {
+          selF.innerHTML += `<option value="${f.id}">${f.number} — €${f.total?.toFixed(2)}</option>`;
+        });
+      } catch(e) {}
+    }
+  };
+  document.getElementById('modalPago').classList.add('open');
+}
+
+async function crearPago() {
+  const customer_id = document.getElementById('pCliente').value;
+  const amount = parseFloat(document.getElementById('pImporte').value);
+  if (!customer_id) return showToast('Selecciona un cliente', 'error');
+  if (!amount || amount <= 0) return showToast('Introduce un importe válido', 'error');
+  try {
+    await apiFetch('/v1/payments/', { method: 'POST', body: JSON.stringify({
+      customer_id,
+      amount,
+      currency: document.getElementById('pDivisa').value,
+      method: document.getElementById('pMetodo').value,
+      invoice_id: document.getElementById('pFactura').value || null,
+      reference: document.getElementById('pReferencia').value || null,
+      notes: document.getElementById('pNotas').value || null,
+    })});
+    closeModal('modalPago');
+    showToast('Pago registrado correctamente ✓');
+    ['pImporte','pReferencia','pNotas'].forEach(id => document.getElementById(id).value = '');
+    cargarPagos();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function confirmarPago(id) {
+  try {
+    await apiFetch('/v1/payments/' + id + '/confirm', { method: 'POST', body: JSON.stringify({}) });
+    showToast('Pago confirmado ✓');
+    cargarPagos();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// Init
+cargarClientes();
+</script>
+</body>
+</html>

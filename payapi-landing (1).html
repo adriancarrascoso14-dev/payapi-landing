@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PayAPI — Facturación para pequeñas empresas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f2ee;
+    --cream: #ede9e3;
+    --green: #00e57a;
+    --green-dark: #00b85f;
+    --gray: #888;
+    --border: #2a2a2a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 4rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(12px);
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+  }
+
+  .logo span { color: var(--green); }
+
+  nav a {
+    color: var(--gray);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--white); }
+
+  .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+
+  .btn-nav {
+    background: var(--green);
+    color: var(--black) !important;
+    font-weight: 500;
+    padding: 0.55rem 1.4rem;
+    border-radius: 100px;
+    font-size: 0.85rem !important;
+    transition: background 0.2s, transform 0.1s !important;
+  }
+  .btn-nav:hover { background: var(--green-dark) !important; transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10rem 4rem 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,229,122,0.12) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.7; }
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,229,122,0.1);
+    border: 1px solid rgba(0,229,122,0.3);
+    color: var(--green);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 2rem;
+    width: fit-content;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    max-width: 900px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--green);
+    position: relative;
+  }
+
+  .hero-sub {
+    font-size: 1.2rem;
+    color: var(--gray);
+    max-width: 540px;
+    line-height: 1.7;
+    margin-top: 1.5rem;
+    font-weight: 300;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3rem;
+    animation: fadeUp 0.6s 0.3s ease both;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--green);
+    color: var(--black);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.9rem 2.2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover { background: var(--green-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,229,122,0.25); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    padding: 0.9rem 2.2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--gray); transform: translateY(-2px); }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--white);
+  }
+  .stat-num span { color: var(--green); }
+  .stat-label { font-size: 0.85rem; color: var(--gray); margin-top: 0.2rem; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* CODE PREVIEW */
+  .code-section {
+    padding: 6rem 4rem;
+    background: #0f0f0f;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    letter-spacing: -0.03em;
+    margin-bottom: 0.8rem;
+  }
+
+  .section-sub {
+    color: var(--gray);
+    font-size: 1rem;
+    max-width: 500px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+  }
+
+  .code-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .code-block {
+    background: #141414;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    background: #1a1a1a;
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .code-label {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+  }
+
+  .code-body {
+    padding: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: #ccc;
+    overflow-x: auto;
+  }
+
+  .c-green { color: var(--green); }
+  .c-yellow { color: #ffd700; }
+  .c-blue { color: #79b8ff; }
+  .c-gray { color: #666; }
+  .c-white { color: #f5f2ee; }
+  .c-orange { color: #ffab70; }
+
+  /* FEATURES */
+  .features {
+    padding: 7rem 4rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 4rem;
+  }
+
+  .feature-card {
+    background: var(--black);
+    padding: 2.5rem;
+    transition: background 0.3s;
+  }
+  .feature-card:hover { background: #111; }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    background: rgba(0,229,122,0.1);
+    border: 1px solid rgba(0,229,122,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .feature-desc {
+    color: var(--gray);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  /* PRICING */
+  .pricing {
+    padding: 7rem 4rem;
+    background: #0a0a0a;
+    border-top: 1px solid var(--border);
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 4rem;
+    max-width: 1000px;
+  }
+
+  .plan-card {
+    background: #111;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    position: relative;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .plan-card:hover { border-color: #444; transform: translateY(-4px); }
+
+  .plan-card.featured {
+    border-color: var(--green);
+    background: #0d1a12;
+  }
+
+  .plan-badge {
+    position: absolute;
+    top: -12px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--green);
+    color: var(--black);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.25rem 0.9rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.2rem;
+  }
+
+  .plan-price {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 3rem;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .plan-price sup {
+    font-size: 1.2rem;
+    font-weight: 400;
+    vertical-align: top;
+    margin-top: 0.5rem;
+    display: inline-block;
+    color: var(--gray);
+  }
+
+  .plan-period {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+    margin-bottom: 2rem;
+  }
+
+  .plan-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.9rem;
+    color: #bbb;
+  }
+
+  .plan-features li::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .btn-plan {
+    display: block;
+    text-align: center;
+    padding: 0.85rem;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-plan-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--white);
+  }
+  .btn-plan-outline:hover { border-color: var(--gray); background: #1a1a1a; }
+
+  .btn-plan-filled {
+    background: var(--green);
+    color: var(--black);
+  }
+  .btn-plan-filled:hover { background: var(--green-dark); box-shadow: 0 4px 16px rgba(0,229,122,0.3); }
+
+  /* HOW IT WORKS */
+  .how {
+    padding: 7rem 4rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 4rem;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 12.5%;
+    right: 12.5%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), var(--border), transparent);
+  }
+
+  .step {
+    padding: 0 2rem;
+    text-align: center;
+  }
+
+  .step-num {
+    width: 4rem; height: 4rem;
+    background: var(--black);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--green);
+    margin: 0 auto 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .step-desc {
+    color: var(--gray);
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+
+  /* CTA FINAL */
+  .cta-section {
+    padding: 8rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(0,229,122,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 4rem);
+    letter-spacing: -0.04em;
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+
+  .cta-section p {
+    color: var(--gray);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 2rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--gray);
+    font-size: 0.85rem;
+  }
+
+  .footer-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 1.2rem 2rem; }
+    .nav-links { gap: 1.5rem; }
+    .hero, .code-section, .features, .pricing, .how, .cta-section { padding-left: 2rem; padding-right: 2rem; }
+    .code-grid, .features-grid, .pricing-grid, .steps { grid-template-columns: 1fr; }
+    .steps::before { display: none; }
+    .hero-stats { flex-wrap: wrap; gap: 1.5rem; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Pay<span>API</span></div>
+  <div class="nav-links">
+    <a href="#features">Funciones</a>
+    <a href="#pricing">Precios</a>
+    <a href="https://api-key-production-e458.up.railway.app/docs" target="_blank">Docs</a>
+    <a href="dashboard.html" class="btn-nav">Panel →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-tag">API en producción · v1.0.0</div>
+  <h1>Facturación lista.<br>Para tu <em>negocio</em>.</h1>
+  <p class="hero-sub">Una API de pagos y facturación simple, barata y lista para integrar en cualquier web o app en menos de 10 minutos.</p>
+  <div class="hero-cta">
+    <a href="#pricing" class="btn-primary">Ver planes →</a>
+    <a href="dashboard.html" class="btn-secondary">🖥 Acceder al panel</a>
+    <a href="https://api-key-production-e458.up.railway.app/docs" target="_blank" class="btn-secondary">Ver documentación</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">3<span>min</span></div>
+      <div class="stat-label">Integración media</div>
+    </div>
+    <div>
+      <div class="stat-num">€<span>9</span></div>
+      <div class="stat-label">Desde al mes</div>
+    </div>
+    <div>
+      <div class="stat-num">99<span>%</span></div>
+      <div class="stat-label">Uptime garantizado</div>
+    </div>
+    <div>
+      <div class="stat-num">REST<span>/JSON</span></div>
+      <div class="stat-label">Estándar universal</div>
+    </div>
+  </div>
+</section>
+
+<!-- CODE PREVIEW -->
+<section class="code-section" id="features">
+  <div class="section-label">// integración</div>
+  <h2 class="section-title">Dos líneas y listo.</h2>
+  <p class="section-sub">Una petición HTTP estándar. Sin SDKs raros, sin configuración compleja. Si sabes hacer una llamada a una API, ya sabes usar PayAPI.</p>
+
+  <div class="code-grid">
+    <div class="code-block">
+      <div class="code-header">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="code-label">Crear factura</span>
+      </div>
+      <div class="code-body">
+<span class="c-green">POST</span> <span class="c-blue">/v1/invoices</span><br>
+<span class="c-gray">X-API-Key:</span> <span class="c-yellow">sk_live_xxxxx</span><br><br>
+<span class="c-gray">{</span><br>
+&nbsp;&nbsp;<span class="c-orange">"customer_id"</span><span class="c-gray">:</span> <span class="c-yellow">"cus_abc123"</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"tax_rate"</span><span class="c-gray">:</span> <span class="c-green">21</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"items"</span><span class="c-gray">: [{</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-orange">"description"</span><span class="c-gray">:</span> <span class="c-yellow">"Diseño web"</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-orange">"unit_price"</span><span class="c-gray">:</span> <span class="c-green">800</span><br>
+&nbsp;&nbsp;<span class="c-gray">}]</span><br>
+<span class="c-gray">}</span>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="code-label">Respuesta</span>
+      </div>
+      <div class="code-body">
+<span class="c-gray">{</span><br>
+&nbsp;&nbsp;<span class="c-orange">"id"</span><span class="c-gray">:</span> <span class="c-yellow">"inv_f3a9c12d"</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"number"</span><span class="c-gray">:</span> <span class="c-yellow">"INV-00001"</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"status"</span><span class="c-gray">:</span> <span class="c-green">"draft"</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"subtotal"</span><span class="c-gray">:</span> <span class="c-green">800.00</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"tax_amount"</span><span class="c-gray">:</span> <span class="c-green">168.00</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"total"</span><span class="c-gray">:</span> <span class="c-green">968.00</span><span class="c-gray">,</span><br>
+&nbsp;&nbsp;<span class="c-orange">"due_date"</span><span class="c-gray">:</span> <span class="c-yellow">"2026-04-03"</span><br>
+<span class="c-gray">}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-label">// funcionalidades</div>
+  <h2 class="section-title">Todo lo que necesitas.<br>Nada que no uses.</h2>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">👤</div>
+      <div class="feature-title">Gestión de clientes</div>
+      <div class="feature-desc">Crea y gestiona tu cartera de clientes con nombre, email, NIF y dirección. Todo organizado y accesible.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧾</div>
+      <div class="feature-title">Facturas automáticas</div>
+      <div class="feature-desc">Genera facturas numeradas automáticamente con líneas de detalle, IVA calculado y fechas de vencimiento.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💸</div>
+      <div class="feature-title">Registro de pagos</div>
+      <div class="feature-desc">Registra cobros por transferencia, tarjeta o efectivo. Al confirmar un pago, la factura se marca como pagada sola.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Dashboard de stats</div>
+      <div class="feature-desc">Consulta totales cobrados, pagos pendientes y facturas vencidas con un solo endpoint.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <div class="feature-title">Planes de facturación</div>
+      <div class="feature-desc">Define planes mensuales, trimestrales o anuales para tus servicios recurrentes.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔑</div>
+      <div class="feature-title">Multi-tenant seguro</div>
+      <div class="feature-desc">Cada empresa tiene su API key propia. Los datos están completamente aislados entre clientes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="section-label">// cómo funciona</div>
+  <h2 class="section-title">En 4 pasos.</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Elige tu plan</div>
+      <div class="step-desc">Selecciona el plan que se ajusta al volumen de tu negocio. Puedes cambiar cuando quieras.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Recibe tu API key</div>
+      <div class="step-desc">En menos de 5 minutos recibirás tu clave de acceso por email.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Integra en tu app</div>
+      <div class="step-desc">Añade la cabecera X-API-Key a tus peticiones. Consulta la documentación interactiva.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-title">Empieza a cobrar</div>
+      <div class="step-desc">Crea clientes, genera facturas y registra pagos desde tu propia aplicación.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-label">// precios</div>
+  <h2 class="section-title">Simple y sin sorpresas.</h2>
+  <p class="section-sub">Sin costes por transacción, sin letra pequeña. Pagas una cuota fija y listo.</p>
+
+  <div class="pricing-grid">
+    <!-- STARTER -->
+    <div class="plan-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price"><sup>€</sup>9</div>
+      <div class="plan-period">al mes</div>
+      <ul class="plan-features">
+        <li>1.000 peticiones/mes</li>
+        <li>Clientes ilimitados</li>
+        <li>Facturas y pagos</li>
+        <li>Soporte por email</li>
+      </ul>
+      <a href="#" class="btn-plan btn-plan-outline">Contratar Starter</a>
+    </div>
+
+    <!-- GROWTH -->
+    <div class="plan-card featured">
+      <div class="plan-badge">Más popular</div>
+      <div class="plan-name">Growth</div>
+      <div class="plan-price"><sup>€</sup>29</div>
+      <div class="plan-period">al mes</div>
+      <ul class="plan-features">
+        <li>10.000 peticiones/mes</li>
+        <li>Clientes ilimitados</li>
+        <li>Facturas, pagos y planes</li>
+        <li>Stats y dashboard</li>
+        <li>Soporte prioritario</li>
+      </ul>
+      <a href="#" class="btn-plan btn-plan-filled">Contratar Growth</a>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan-card">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price"><sup>€</sup>79</div>
+      <div class="plan-period">al mes</div>
+      <ul class="plan-features">
+        <li>100.000 peticiones/mes</li>
+        <li>Clientes ilimitados</li>
+        <li>Todo incluido</li>
+        <li>SLA 99.9% uptime</li>
+        <li>Soporte dedicado</li>
+      </ul>
+      <a href="#" class="btn-plan btn-plan-outline">Contratar Pro</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>¿Listo para empezar?</h2>
+  <p>Primera semana gratis. Sin tarjeta de crédito.</p>
+  <a href="#pricing" class="btn-primary">Empezar gratis →</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo" style="font-family:'Syne',sans-serif;font-weight:800;">Pay<span style="color:var(--green)">API</span></div>
+  <div class="footer-mono">
+    <a href="https://api-key-production-e458.up.railway.app/docs" target="_blank" style="color:var(--gray);text-decoration:none;">docs →</a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb989e9b9b84999fab9b8a928a9b82c58284">[email&#160;protected]
